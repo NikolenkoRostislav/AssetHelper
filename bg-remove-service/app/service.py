@@ -6,43 +6,43 @@ from rembg import remove
 from PIL import Image
 from app.utils.exceptions import *
 
-class BgRemoveService:
-    @staticmethod
-    async def remove_bg(image: UploadFile):
+async def _get_removed_bg_buffer(image: UploadFile):
+    try:
         contents = await image.read()
-        try:
-            input_image = Image.open(BytesIO(contents))
-        except Exception:
-            raise InvalidEntryError("Something failed")
+        input_image = Image.open(BytesIO(contents))
 
-        output_image = remove(input_image)
+        output_image = remove(
+            input_image, 
+            alpha_matting=True, alpha_matting_foreground_threshold=270,alpha_matting_background_threshold=20, alpha_matting_erode_size=11, 
+            post_process_mask=True
+        )
 
         buffer = BytesIO()
         output_image.save(buffer, format="PNG")
         buffer.seek(0)
+    except Exception:
+        return None
+    return buffer
+
+class BgRemoveService:
+    @staticmethod
+    async def remove_bg(image: UploadFile):
+        buffer = await _get_removed_bg_buffer(image)
+        if buffer is None:
+            raise InvalidEntryError("Failed to process the image.")
 
         return StreamingResponse(buffer, media_type="image/png", headers={
             "Content-Disposition": 'attachment; filename="updated_image.png"'
         })
-
 
     @staticmethod
     async def remove_bgs(images: list[UploadFile]):
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, "w") as zf:
             for image in images:
-                contents = await image.read()
-                try:
-                    input_image = Image.open(BytesIO(contents))
-                except Exception:
-                    raise InvalidEntryError("Something failed")
-
-                output_image = remove(input_image)
-
-                img_buffer = BytesIO()
-                output_image.save(img_buffer, format="PNG")
-                img_buffer.seek(0)
-
+                buffer = await _get_removed_bg_buffer(image)
+                if buffer is None:
+                    raise InvalidEntryError("Failed to process the image.")
                 zf.writestr(image.filename, img_buffer.read())
         zip_buffer.seek(0)
         return StreamingResponse(zip_buffer, media_type="application/zip", headers={
