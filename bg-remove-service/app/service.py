@@ -13,7 +13,7 @@ async def _get_removed_bg_buffer(image: UploadFile):
 
         output_image = remove(
             input_image, 
-            alpha_matting=True, alpha_matting_foreground_threshold=270,alpha_matting_background_threshold=20, alpha_matting_erode_size=11, 
+            alpha_matting=True, alpha_matting_foreground_threshold=250,alpha_matting_background_threshold=30, alpha_matting_erode_size=5, 
             post_process_mask=True
         )
 
