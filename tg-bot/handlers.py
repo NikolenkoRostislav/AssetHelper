@@ -1,8 +1,29 @@
 import aiohttp
 from io import BytesIO
 from telegram import Update, InputFile
-from telegram.ext import CommandHandler, MessageHandler, ConversationHandler, ContextTypes, filters
+from telegram.ext import CommandHandler, MessageHandler, ConversationHandler, ContextTypes, filters, CallbackContext
 from config import settings
+
+async def _download_yt(update: Update, context: CallbackContext, download_type: str = "video"):
+        if len(context.args) == 0:
+            await update.message.reply_text(f"Please provide a YouTube URL. Usage: /{download_type} <YouTube URL>")
+            return
+
+        await update.message.reply_text(f"Downloading {download_type}...")
+
+        url = context.args[0]
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{settings.YT_DOWNLOAD_URL}/{download_type}", params={"url": url}) as resp:
+                if resp.status != 200:
+                    await update.message.reply_text(f"Failed to download the {download_type}.")
+                    return
+                download_bytes = await resp.read()
+
+        bio = BytesIO(download_bytes)
+        bio.name = "audio.mp3" if download_type == "audio" else "video.mp4"
+        bio.seek(0)
+
+        await update.message.reply_document(document=InputFile(bio))
 
 class BotHandlers:
     @staticmethod
@@ -11,7 +32,7 @@ class BotHandlers:
 
     @staticmethod
     async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("You can send me images and I will remove their backgrounds for you! That's it for now.")
+        await update.message.reply_text("You can send me images and I will remove their backgrounds for you! You can also use the /audio and /video commands with a youtube video URL to download it.")
 
     @staticmethod
     async def remove_bg(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -33,7 +54,17 @@ class BotHandlers:
         await update.message.reply_document(document=InputFile(bio))
 
     @staticmethod
+    async def download_yt_audio(update: Update, context: CallbackContext):
+        await _download_yt(update, context, download_type="audio")
+
+    @staticmethod
+    async def download_yt_video(update: Update, context: CallbackContext):
+        await _download_yt(update, context, download_type="video")
+
+    @staticmethod
     def register_handlers(app):
         app.add_handler(CommandHandler("start", BotHandlers.start))
         app.add_handler(CommandHandler("help", BotHandlers.help))
+        app.add_handler(CommandHandler("audio", BotHandlers.download_yt_audio))
+        app.add_handler(CommandHandler("video", BotHandlers.download_yt_video))
         app.add_handler(MessageHandler(filters.PHOTO, BotHandlers.remove_bg))
