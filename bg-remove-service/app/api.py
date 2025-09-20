@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile
 from app.service import BgRemoveService
-from app.utils.exceptions import handle_exceptions
+from app.exceptions import handle_exceptions
 
 router = APIRouter(prefix="/bg-rm", tags=["bg-rm"])
 

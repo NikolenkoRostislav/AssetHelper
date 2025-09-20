@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.api import router
 from app.config import settings
-from app.utils.exceptions import *
+from app.exceptions import *
 import uvicorn
 
 app = FastAPI()

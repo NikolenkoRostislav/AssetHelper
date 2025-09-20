@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 from rembg import remove
 from PIL import Image
-from app.utils.exceptions import *
+from app.exceptions import *
 
 async def _get_removed_bg_buffer(image: UploadFile):
     try:
