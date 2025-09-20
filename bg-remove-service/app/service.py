@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 from zipfile import ZipFile
 from fastapi import UploadFile
@@ -45,8 +46,9 @@ class BgRemoveService:
         if buffer is None:
             raise InvalidEntryError("Failed to process the image.")
 
+        filename, _ = os.path.splitext(image.filename)
         return StreamingResponse(buffer, media_type="image/png", headers={
-            "Content-Disposition": 'attachment; filename="updated_image.png"'
+            "Content-Disposition": f'attachment; filename="{filename}.png"'
         })
 
     @staticmethod

@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile
 from app.service import YTDownloadService
 from app.exceptions import handle_exceptions
 
-router = APIRouter(prefix="/bg-rm", tags=["bg-rm"])
+router = APIRouter(prefix="/yt-download", tags=["yt-download"])
 
 @router.get("/video")
 @handle_exceptions
