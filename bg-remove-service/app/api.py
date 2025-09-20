@@ -14,7 +14,7 @@ async def bg_rm(image: UploadFile):
 async def bg_rm(images: list[UploadFile]):
     return await BgRemoveService.remove_bgs(images)
 
-@router.post("/test")
-async def test():
-    #contents = await image.read()
-    return {"test": "ok"}  
+@router.post("/images/zip")
+@handle_exceptions
+async def bg_rm(zip_file: UploadFile):
+    return await BgRemoveService.remove_bgs_zip(zip_file)

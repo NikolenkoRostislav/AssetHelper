@@ -24,6 +24,20 @@ async def _get_removed_bg_buffer(image: UploadFile):
         return None
     return buffer
 
+async def _unzip_to_uploadfiles(zip_file: UploadFile) -> list[UploadFile]:
+    contents = await zip_file.read()
+    input_zip = BytesIO(contents)
+    upload_files = []
+
+    with ZipFile(input_zip, "r") as zf:
+        for filename in zf.namelist():
+            file_data = zf.read(filename)
+            upload_files.append(
+                UploadFile(filename=filename, file=BytesIO(file_data))
+            )
+
+    return upload_files
+
 class BgRemoveService:
     @staticmethod
     async def remove_bg(image: UploadFile):
@@ -43,8 +57,13 @@ class BgRemoveService:
                 buffer = await _get_removed_bg_buffer(image)
                 if buffer is None:
                     raise InvalidEntryError("Failed to process the image.")
-                zf.writestr(image.filename, img_buffer.read())
+                zf.writestr(image.filename, buffer.read())
         zip_buffer.seek(0)
         return StreamingResponse(zip_buffer, media_type="application/zip", headers={
             "Content-Disposition": 'attachment; filename="images.zip"'
         })
+
+    @staticmethod
+    async def remove_bgs_zip(zip_file: UploadFile):
+        upload_files = await _unzip_to_uploadfiles(zip_file)
+        return await BgRemoveService.remove_bgs(upload_files)
