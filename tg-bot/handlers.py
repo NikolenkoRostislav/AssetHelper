@@ -9,7 +9,7 @@ async def _download_yt(update: Update, context: CallbackContext, download_type: 
             await update.message.reply_text(f"Please provide a YouTube URL. Usage: /{download_type} <YouTube URL>")
             return
 
-        await update.message.reply_text(f"Downloading {download_type}...")
+        download_msg = await update.message.reply_text(f"Downloading {download_type}...")
 
         url = context.args[0]
         async with aiohttp.ClientSession() as session:
@@ -24,6 +24,7 @@ async def _download_yt(update: Update, context: CallbackContext, download_type: 
         bio.seek(0)
 
         await update.message.reply_document(document=InputFile(bio))
+        await download_msg.delete()
 
 class BotHandlers:
     @staticmethod
