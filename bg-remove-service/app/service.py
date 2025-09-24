@@ -30,12 +30,15 @@ async def _unzip_to_uploadfiles(zip_file: UploadFile) -> list[UploadFile]:
     input_zip = BytesIO(contents)
     upload_files = []
 
-    with ZipFile(input_zip, "r") as zf:
-        for filename in zf.namelist():
-            file_data = zf.read(filename)
-            upload_files.append(
-                UploadFile(filename=filename, file=BytesIO(file_data))
-            )
+    try:
+        with ZipFile(input_zip, "r") as zf:
+            for filename in zf.namelist():
+                file_data = zf.read(filename)
+                upload_files.append(
+                    UploadFile(filename=filename, file=BytesIO(file_data))
+                )
+    except Exception:
+        raise InvalidEntryError("Failed to process the zip file.")
 
     return upload_files
 

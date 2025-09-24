@@ -4,6 +4,10 @@ from app.exceptions import handle_exceptions
 
 router = APIRouter(prefix="/bg-rm", tags=["bg-rm"])
 
+@router.get("/")
+async def health_check():
+    return {"status": "ok"}
+
 @router.post("/image")
 @handle_exceptions
 async def bg_rm(image: UploadFile):
