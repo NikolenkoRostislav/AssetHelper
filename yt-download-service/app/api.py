@@ -4,6 +4,10 @@ from app.exceptions import handle_exceptions
 
 router = APIRouter(prefix="/yt-download", tags=["yt-download"])
 
+@router.get("/")
+async def health_check():
+    return {"status": "ok"}
+
 @router.get("/video")
 @handle_exceptions
 async def download_video(url: str):
