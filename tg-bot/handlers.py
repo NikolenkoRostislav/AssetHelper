@@ -33,7 +33,7 @@ class BotHandlers:
 
     @staticmethod
     async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("You can send me images and I will remove their backgrounds for you! You can also use the /audio and /video commands with a youtube video URL to download it.")
+        await update.message.reply_text("You can send me images and I will remove their backgrounds for you! Send a video if you want to extract the audio file from it. You can also use the /audio and /video commands with a youtube video URL to download it.")
 
     @staticmethod
     async def remove_bg(update: Update, context: ContextTypes.DEFAULT_TYPE):
