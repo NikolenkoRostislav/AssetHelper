@@ -55,6 +55,25 @@ class BotHandlers:
         await update.message.reply_document(document=InputFile(bio))
 
     @staticmethod
+    async def video_to_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        video = update.message.video
+        file_id = video.file_id
+        file = await context.bot.get_file(file_id)
+        file_bytes = await file.download_as_bytearray()
+
+        async with aiohttp.ClientSession() as session:
+            data = aiohttp.FormData()
+            data.add_field("video", file_bytes, filename="video.mp4", content_type="video/mp4")
+            async with session.post(f"{settings.MP4_TO_MP3_URL}/convert", data=data) as resp:
+                processed_bytes = await resp.read()
+        
+        bio = BytesIO(processed_bytes)
+        bio.name = "audio.mp3"
+        bio.seek(0)
+
+        await update.message.reply_document(document=InputFile(bio))
+
+    @staticmethod
     async def download_yt_audio(update: Update, context: CallbackContext):
         await _download_yt(update, context, download_type="audio")
 
@@ -69,3 +88,4 @@ class BotHandlers:
         app.add_handler(CommandHandler("audio", BotHandlers.download_yt_audio))
         app.add_handler(CommandHandler("video", BotHandlers.download_yt_video))
         app.add_handler(MessageHandler(filters.PHOTO, BotHandlers.remove_bg))
+        app.add_handler(MessageHandler(filters.VIDEO, BotHandlers.video_to_audio))
