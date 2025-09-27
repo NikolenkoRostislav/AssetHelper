@@ -1,4 +1,5 @@
 import os
+#import asyncio
 import tempfile
 import subprocess
 from io import BytesIO
@@ -9,13 +10,16 @@ from app.exceptions import *
 class Mp4ToMp3Service:
     @staticmethod
     async def convert(video: UploadFile):
-        tmp_path = os.path.join(tempfile.gettempdir(), f"tmp_{video.filename}")
-        with open(tmp_path, "wb") as f:
-            f.write(await video.read())
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+            tmp_path = tmp.name
+            while chunk := await video.read(1024 * 1024):
+                tmp.write(chunk)
 
         cmd = ["ffmpeg", "-i", tmp_path, "-vn", "-f", "mp3", "pipe:1"]
+        #process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  #For some reason create_subprocess_exec doesn't work on windows in this case
+        #audio_bytes, _ = await process.communicate()
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        audio_bytes = process.communicate()[0]
+        audio_bytes, _ = process.communicate()
 
         os.remove(tmp_path)
 
