@@ -23,6 +23,9 @@ class Mp4ToMp3Service:
 
         os.remove(tmp_path)
 
+        if not audio_bytes:
+            raise InvalidEntryError("Input file is corrupted or contains no audio")
+
         buffer = BytesIO(audio_bytes)
         buffer.seek(0)
 
